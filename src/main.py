@@ -1,51 +1,94 @@
 import os
 import sys
-from typing import Dict, Any
 
-# Configuração dinâmica do PYTHONPATH para permitir importação dos módulos irmãos
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(current_dir)
 
 from pdf.extractor import extract_pdf_info
-# from pdf.images import extract_images_from_pdf       # Futuro módulo para extração de imagens
+from pdf.images import extract_images_from_pdf
+from cli.arguments import get_arguments
 
 def main() -> None:
-    """
-    Função principal (Entry Point) da CLI do Projeto ADA.
-    Gerencia o fluxo de leitura, extração e exibição de dados.
-    """
+    args = get_arguments()
+    
     print("--- Iniciando Processamento ADA ---")
 
-    # Definição de caminhos relativos à raiz do projeto
-    project_root = os.path.dirname(current_dir)
-    filename = "Sistemas de Informação_ O Sistema Nervoso das Organizações Modernas.pdf"
-    pdf_path = os.path.join(project_root, "arquivos_teste", filename)
+    # 1. Definição do Arquivo
+    if args.input:
+        pdf_path = args.input
+    else:
+        project_root = os.path.dirname(current_dir)
+        filename = "Sistemas de Informação_ O Sistema Nervoso das Organizações Modernas.pdf"
+        possible_paths = [
+            os.path.join(project_root, "arquivos_teste", filename),
+            os.path.join(project_root, filename)
+        ]
+        pdf_path = None
+        for p in possible_paths:
+            if os.path.exists(p):
+                pdf_path = p
+                break
+        if not pdf_path:
+             pdf_path = os.path.join(project_root, "arquivos_teste", filename)
 
-    # Verifica existência do recurso
     if not os.path.exists(pdf_path):
-        print(f"❌ Erro Crítico: Arquivo alvo não encontrado em: {pdf_path}")
+        print(f"[ERRO CRÍTICO] Arquivo não encontrado: {pdf_path}")
         return
 
-    print(f"Processando arquivo: {filename}")
+    print(f"Processando arquivo: {pdf_path}")
 
-    # 1. Execução do módulo de extração de texto
-    print("\n🔍 --- Análise Estrutural e Textual ---")
-    results: Dict[str, Any] = extract_pdf_info(pdf_path)
+    # ==========================================
+    # 1. Análise do PDF (Passo 1 Completo)
+    # ==========================================
+    print("\n--- 1. Análise do PDF ---")
+    try:
+        pdf_info = extract_pdf_info(pdf_path)
+        
+        # Exibição conforme requisitos
+        print(f"Arquivo: {pdf_info.get('filename')}")
+        
+        # [REQUISITO] Número total de páginas
+        print(f"Número total de páginas: {pdf_info.get('num_pages')}")
+        
+        # [REQUISITO] Número total de palavras
+        print(f"Número total de palavras: {pdf_info.get('total_words')}")
+        
+        # [REQUISITO] Tamanho em bytes (ADICIONADO AGORA)
+        print(f"Tamanho do arquivo: {pdf_info.get('filesize_bytes')} bytes")
+        
+        # [REQUISITO] Tamanho do vocabulário
+        print(f"Tamanho do vocabulário: {pdf_info.get('vocab_size')}") 
+        
+        # [REQUISITO] Lista das 10 palavras mais comuns
+        print("\nLista das 10 palavras mais comuns:")
+        for p, q in pdf_info.get('top_10_words', []):
+            print(f"   - {p}: {q}")
+            
+    except Exception as e:
+        print(f"[ERRO] Metadados: {e}")
 
-    if "erro" in results:
-        print(f"❌ Falha na extração: {results['erro']}")
-        return
+    # ==========================================
+    # 2. Extração de Imagens (Passo 2 Completo)
+    # ==========================================
+    print("\n--- 2. Extração de Imagens ---")
+    try:
+        pdf_filename = os.path.basename(pdf_path)
+        pdf_name_no_ext = os.path.splitext(pdf_filename)[0]
 
-    # Exibição dos resultados (Report)
-    print(f"✅ Status: Sucesso")
-    print(f"📄 Páginas: {results['num_pages']}")
-    print(f"💾 Tamanho: {results['file_size_bytes']} bytes")
-    print(f"🔤 Palavras Totais: {results['total_words']}")
-    print(f"📚 Vocabulário Único: {results['vocab_size']}")
-    print(f"🔝 Top 10 Termos: {results['top_10_words']}")
+        if args.image_dir:
+            base_dir = args.image_dir
+        else:
+            project_root = os.path.dirname(current_dir)
+            base_dir = os.path.join(project_root, "imagens")
 
-    # 2. Futura integração de Imagens e LLM virá aqui
-    # ...
+        final_output_dir = os.path.join(base_dir, pdf_name_no_ext)
+        
+        qtd = extract_images_from_pdf(pdf_path, output_dir=final_output_dir)
+        print(f"[SUCESSO] {qtd} imagens salvas.")
+        print(f"          Local: {final_output_dir}")
+
+    except Exception as e:
+        print(f"[ERRO] Imagens: {e}")
 
 if __name__ == "__main__":
     main()
