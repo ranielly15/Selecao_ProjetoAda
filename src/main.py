@@ -9,15 +9,14 @@ sys.path.append(current_dir)
 from pdf.extractor import extract_pdf_info
 from pdf.images import extract_images_from_pdf
 from cli.arguments import get_arguments
-from utils.logger import setup_logger # Importando nossa nova ferramenta
+from utils.logger import setup_logger
+from utils.report import save_markdown_report
 
-# Tenta importar IA
 try:
     from llm.summarize import generate_summary
 except ImportError:
     generate_summary = None
 
-# Inicializa o Logger (substitui os prints do sistema)
 logger = setup_logger()
 
 def main() -> None:
@@ -49,25 +48,28 @@ def main() -> None:
 
     logger.info(f"Processando arquivo: {pdf_path}")
 
+    # Variáveis para guardar os dados para o Relatório Final
+    final_pdf_info = {}
+    final_summary = "Resumo não gerado (IA desabilitada ou erro)."
+
     # ==========================================
     # PASSO 1: Análise do PDF
     # ==========================================
     logger.info("Iniciando Análise de Metadados...")
     try:
-        pdf_info = extract_pdf_info(pdf_path)
+        final_pdf_info = extract_pdf_info(pdf_path)
         
-        # Usamos logger para fluxo, mas print para exibir os DADOS finais ao usuário
         print("\n" + "-"*30)
         print("RESULTADOS DA ANÁLISE:")
-        print(f"Arquivo: {pdf_info.get('filename')}")
-        print(f"Páginas: {pdf_info.get('num_pages')}")
-        print(f"Palavras Totais: {pdf_info.get('total_words')}")
-        print(f"Bytes: {pdf_info.get('filesize_bytes')}")
-        print(f"Vocabulário: {pdf_info.get('vocab_size')}")
+        print(f"Arquivo: {final_pdf_info.get('filename')}")
+        print(f"Páginas: {final_pdf_info.get('num_pages')}")
+        print(f"Palavras Totais: {final_pdf_info.get('total_words')}")
+        print(f"Bytes: {final_pdf_info.get('filesize_bytes')}")
+        print(f"Vocabulário: {final_pdf_info.get('vocab_size')}")
         print("-" * 30 + "\n")
         
         print("Top 10 Palavras:")
-        for p, q in pdf_info.get('top_10_words', []):
+        for p, q in final_pdf_info.get('top_10_words', []):
             print(f"   - {p}: {q}")
             
     except Exception as e:
@@ -116,15 +118,24 @@ def main() -> None:
                 print("RESUMO IA:")
                 print(final_summary)
                 print("="*50 + "\n")
-
-                # Salva TXT simples
-                output_file = os.path.join(project_root, f"resumo_{pdf_name_no_ext}.txt")
-                with open(output_file, "w", encoding="utf-8") as f:
-                    f.write(f"Resumo do arquivo: {pdf_filename}\n\n{final_summary}")
-                logger.info(f"Resumo salvo em arquivo: {output_file}")
-
+        
+        # --- AQUI ESTAVA FALTANDO O EXCEPT ---
         except Exception as e:
             logger.error(f"Falha na geração do resumo: {e}")
+            final_summary = f"Erro ao gerar resumo: {e}"
+
+    # ==========================================
+    # PASSO EXTRA: Relatório Unificado
+    # ==========================================
+    logger.info("Gerando Relatório Final Unificado...")
+    project_root = os.path.dirname(current_dir) # Salva na raiz do projeto
+    
+    report_file = save_markdown_report(final_pdf_info, final_summary, project_root)
+    
+    if report_file:
+        logger.info(f"Relatório Markdown salvo com sucesso em: {report_file}")
+    else:
+        logger.error("Falha ao salvar relatório Markdown.")
 
 if __name__ == "__main__":
     main()
