@@ -1,11 +1,13 @@
 import os
 import sys
+from pypdf import PdfReader # Necessário para ler o texto completo para a IA
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(current_dir)
 
 from pdf.extractor import extract_pdf_info
 from pdf.images import extract_images_from_pdf
+from llm.summarize import generate_summary # Importando nosso novo módulo
 from cli.arguments import get_arguments
 
 def main() -> None:
@@ -13,7 +15,7 @@ def main() -> None:
     
     print("--- Iniciando Processamento ADA ---")
 
-    # 1. Definição do Arquivo
+    # --- Definição do Arquivo ---
     if args.input:
         pdf_path = args.input
     else:
@@ -38,28 +40,18 @@ def main() -> None:
     print(f"Processando arquivo: {pdf_path}")
 
     # ==========================================
-    # 1. Análise do PDF (Passo 1 Completo)
+    # PASSO 1: Análise do PDF (Metadados)
     # ==========================================
     print("\n--- 1. Análise do PDF ---")
     try:
         pdf_info = extract_pdf_info(pdf_path)
         
-        # Exibição conforme requisitos
         print(f"Arquivo: {pdf_info.get('filename')}")
-        
-        # [REQUISITO] Número total de páginas
         print(f"Número total de páginas: {pdf_info.get('num_pages')}")
-        
-        # [REQUISITO] Número total de palavras
         print(f"Número total de palavras: {pdf_info.get('total_words')}")
-        
-        # [REQUISITO] Tamanho em bytes (ADICIONADO AGORA)
         print(f"Tamanho do arquivo: {pdf_info.get('filesize_bytes')} bytes")
+        print(f"Tamanho do vocabulário: {pdf_info.get('vocab_size')}")
         
-        # [REQUISITO] Tamanho do vocabulário
-        print(f"Tamanho do vocabulário: {pdf_info.get('vocab_size')}") 
-        
-        # [REQUISITO] Lista das 10 palavras mais comuns
         print("\nLista das 10 palavras mais comuns:")
         for p, q in pdf_info.get('top_10_words', []):
             print(f"   - {p}: {q}")
@@ -68,7 +60,7 @@ def main() -> None:
         print(f"[ERRO] Metadados: {e}")
 
     # ==========================================
-    # 2. Extração de Imagens (Passo 2 Completo)
+    # PASSO 2: Extração de Imagens
     # ==========================================
     print("\n--- 2. Extração de Imagens ---")
     try:
@@ -89,6 +81,42 @@ def main() -> None:
 
     except Exception as e:
         print(f"[ERRO] Imagens: {e}")
+
+    # ==========================================
+    # PASSO 3: Geração de Resumo (LLM Local)
+    # ==========================================
+    print("\n--- 3. Geração de Resumo (LLM Local) ---")
+    try:
+        # 1. Extrair texto bruto para a IA ler
+        reader = PdfReader(pdf_path)
+        full_text = ""
+        for page in reader.pages:
+            t = page.extract_text()
+            if t: full_text += t + "\n"
+        
+        if not full_text.strip():
+            print("[AVISO] PDF sem texto detectável para resumo.")
+        else:
+            # 2. Gerar Resumo
+            resumo = generate_summary(full_text)
+            
+            # 3. Imprimir na saída padrão (Requisito Obrigatório)
+            print("\n" + "="*50)
+            print("RESUMO DO DOCUMENTO:")
+            print("="*50)
+            print(resumo)
+            print("="*50)
+
+            # 4. Salvar em arquivo .txt (Requisito Opcional/Pontos Extras)
+            # Salva na raiz do projeto
+            output_file = os.path.join(project_root, f"resumo_{pdf_name_no_ext}.txt")
+            with open(output_file, "w", encoding="utf-8") as f:
+                f.write(f"Resumo do arquivo: {pdf_filename}\n\n{resumo}")
+            
+            print(f"\n[INFO] Resumo salvo em arquivo: {output_file}")
+
+    except Exception as e:
+        print(f"[ERRO] Falha na geração do resumo: {e}")
 
 if __name__ == "__main__":
     main()
