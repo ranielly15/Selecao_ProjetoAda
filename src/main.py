@@ -19,6 +19,26 @@ except ImportError:
 
 logger = setup_logger()
 
+def format_bytes(size):
+    """Converte bytes para KB ou MB para ficar legível."""
+    power = 2**10
+    n = size
+    power_labels = {0 : '', 1: 'KB', 2: 'MB', 3: 'GB'}
+    count = 0
+    while n > power:
+        n /= power
+        count += 1
+    return f"{n:.2f} {power_labels.get(count, 'bytes')}"
+
+def print_box(text):
+    """Cria uma caixa bonita ao redor do texto."""
+    lines = text.split('\n')
+    width = max(len(line) for line in lines) + 4
+    print("╔" + "═" * width + "╗")
+    for line in lines:
+        print(f"║  {line:<{width-4}}  ║")
+    print("╚" + "═" * width + "╝")
+
 def main() -> None:
     args = get_arguments()
     
@@ -48,29 +68,40 @@ def main() -> None:
 
     logger.info(f"Processando arquivo: {pdf_path}")
 
-    # Variáveis para guardar os dados para o Relatório Final
+    # Variáveis globais
     final_pdf_info = {}
-    final_summary = "Resumo não gerado (IA desabilitada ou erro)."
+    final_summary = "Resumo não gerado."
 
     # ==========================================
-    # PASSO 1: Análise do PDF
+    # PASSO 1: Análise do PDF (Visual Profissional)
     # ==========================================
     logger.info("Iniciando Análise de Metadados...")
     try:
         final_pdf_info = extract_pdf_info(pdf_path)
         
-        print("\n" + "-"*30)
-        print("RESULTADOS DA ANÁLISE:")
-        print(f"Arquivo: {final_pdf_info.get('filename')}")
-        print(f"Páginas: {final_pdf_info.get('num_pages')}")
-        print(f"Palavras Totais: {final_pdf_info.get('total_words')}")
-        print(f"Bytes: {final_pdf_info.get('filesize_bytes')}")
-        print(f"Vocabulário: {final_pdf_info.get('vocab_size')}")
-        print("-" * 30 + "\n")
+        # Conversão de tamanho amigável
+        tamanho_humano = format_bytes(final_pdf_info.get('filesize_bytes', 0))
+
+        # --- EXIBIÇÃO PROFISSIONAL ---
+        print("\n")
+        print_box("RELATÓRIO DE ANÁLISE ESTATÍSTICA")
         
-        print("Top 10 Palavras:")
-        for p, q in final_pdf_info.get('top_10_words', []):
-            print(f"   - {p}: {q}")
+        print(f" [DADOS GERAIS]")
+        # O :<15 garante que a coluna tenha sempre 15 espaços de largura
+        print(f"   {'Arquivo':<15} : {final_pdf_info.get('filename')}")
+        print(f"   {'Tamanho':<15} : {tamanho_humano}")
+        print(f"   {'Páginas':<15} : {final_pdf_info.get('num_pages')}")
+        print(f"   {'Palavras':<15} : {final_pdf_info.get('total_words')}")
+        print(f"   {'Vocabulário':<15} : {final_pdf_info.get('vocab_size')} termos únicos")
+        print("-" * 50)
+        
+        print(f" [TOP 10 TERMOS MAIS FREQUENTES]")
+        print(f"   {'#':<3} {'PALAVRA':<20} {'FREQ'}")
+        print(f"   {'-'*3} {'-'*20} {'-'*4}")
+        
+        for i, (word, count) in enumerate(final_pdf_info.get('top_10_words', []), 1):
+            print(f"   {i:<3} {word:<20} {count}")
+        print("-" * 50 + "\n")
             
     except Exception as e:
         logger.error(f"Falha nos metadados: {e}")
@@ -114,12 +145,11 @@ def main() -> None:
             else:
                 final_summary = generate_summary(full_text)
                 
-                print("\n" + "="*50)
-                print("RESUMO IA:")
+                print("\n")
+                print_box("RESUMO INTELIGENTE (IA)")
                 print(final_summary)
-                print("="*50 + "\n")
+                print("=" * 60 + "\n")
         
-        # --- AQUI ESTAVA FALTANDO O EXCEPT ---
         except Exception as e:
             logger.error(f"Falha na geração do resumo: {e}")
             final_summary = f"Erro ao gerar resumo: {e}"
@@ -128,12 +158,11 @@ def main() -> None:
     # PASSO EXTRA: Relatório Unificado
     # ==========================================
     logger.info("Gerando Relatório Final Unificado...")
-    project_root = os.path.dirname(current_dir) # Salva na raiz do projeto
-    
+    project_root = os.path.dirname(current_dir)
     report_file = save_markdown_report(final_pdf_info, final_summary, project_root)
     
     if report_file:
-        logger.info(f"Relatório Markdown salvo com sucesso em: {report_file}")
+        logger.info(f"Relatório Markdown salvo em: {report_file}")
     else:
         logger.error("Falha ao salvar relatório Markdown.")
 

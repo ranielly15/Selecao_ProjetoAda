@@ -1,3 +1,0 @@
-Resumo do arquivo: Sistemas de Informação_ O Sistema Nervoso das Organizações Modernas.pdf
-
-O Sistema de Informação é uma ferramenta crucial para organizações modernas, especialmente no mundo digitalmente conectado. Ele combina elementos como computadores, redes de comunicação, armazenamento de dados e sistemas operacionais para coletar, transformar e distribuir informações. Os cinco componentes essenciais incluem hardware, software, dados, redes e pessoas. Para funcionar eficazmente, todos esses elementos precisam ser interligados harmoniosamente. O ciclo de processo da informação envolve entrada, processamento, saída e feedback, garantindo que todas as informações sejam utilizadas de maneira relevante e eficiente.
