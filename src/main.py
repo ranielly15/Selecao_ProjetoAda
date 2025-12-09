@@ -1,5 +1,6 @@
 import os
 import sys
+import time  # <--- Nova importação para medir o tempo
 from pypdf import PdfReader
 
 # Ajuste de path
@@ -19,8 +20,8 @@ except ImportError:
 
 logger = setup_logger()
 
+# Funções auxiliares de formatação visual
 def format_bytes(size):
-    """Converte bytes para KB ou MB para ficar legível."""
     power = 2**10
     n = size
     power_labels = {0 : '', 1: 'KB', 2: 'MB', 3: 'GB'}
@@ -31,7 +32,6 @@ def format_bytes(size):
     return f"{n:.2f} {power_labels.get(count, 'bytes')}"
 
 def print_box(text):
-    """Cria uma caixa bonita ao redor do texto."""
     lines = text.split('\n')
     width = max(len(line) for line in lines) + 4
     print("╔" + "═" * width + "╗")
@@ -41,8 +41,7 @@ def print_box(text):
 
 def main() -> None:
     args = get_arguments()
-    
-    logger.info("--- Iniciando Processamento ADA ---")
+    logger.info("--- Iniciando Processamento ADA v1.0 ---")
 
     # 1. Definição do Arquivo
     if args.input:
@@ -70,37 +69,38 @@ def main() -> None:
 
     # Variáveis globais
     final_pdf_info = {}
-    final_summary = "Resumo não gerado."
+    final_summary_text = "Resumo não gerado."
 
     # ==========================================
-    # PASSO 1: Análise do PDF (Visual Profissional)
+    # PASSO 1: Análise do PDF (Com Timer)
     # ==========================================
     logger.info("Iniciando Análise de Metadados...")
+    
+    start_time_meta = time.time() # Inicia cronômetro
+    
     try:
         final_pdf_info = extract_pdf_info(pdf_path)
         
-        # Conversão de tamanho amigável
+        # Para o cronômetro
+        elapsed_meta = time.time() - start_time_meta
+        logger.info(f"Análise de Metadados concluída em {elapsed_meta:.2f} segundos.")
+        
         tamanho_humano = format_bytes(final_pdf_info.get('filesize_bytes', 0))
 
-        # --- EXIBIÇÃO PROFISSIONAL ---
+        # EXIBIÇÃO
         print("\n")
         print_box("RELATÓRIO DE ANÁLISE ESTATÍSTICA")
-        
-        print(f" [DADOS GERAIS]")
-        # O :<15 garante que a coluna tenha sempre 15 espaços de largura
+        print(f" [DADOS GERAIS] (Tempo de processamento: {elapsed_meta:.2f}s)")
         print(f"   {'Arquivo':<15} : {final_pdf_info.get('filename')}")
         print(f"   {'Tamanho':<15} : {tamanho_humano}")
         print(f"   {'Páginas':<15} : {final_pdf_info.get('num_pages')}")
-        print(f"   {'Palavras':<15} : {final_pdf_info.get('total_words')}")
+        print(f"   {'Total Palavras':<15} : {final_pdf_info.get('total_words')}")
         print(f"   {'Vocabulário':<15} : {final_pdf_info.get('vocab_size')} termos únicos")
         print("-" * 50)
         
         print(f" [TOP 10 TERMOS MAIS FREQUENTES]")
-        print(f"   {'#':<3} {'PALAVRA':<20} {'FREQ'}")
-        print(f"   {'-'*3} {'-'*20} {'-'*4}")
-        
         for i, (word, count) in enumerate(final_pdf_info.get('top_10_words', []), 1):
-            print(f"   {i:<3} {word:<20} {count}")
+            print(f"   {i:<2}. {word:<20} ({count})")
         print("-" * 50 + "\n")
             
     except Exception as e:
@@ -129,10 +129,13 @@ def main() -> None:
         logger.error(f"Erro ao extrair imagens: {e}")
 
     # ==========================================
-    # PASSO 3: Geração de Resumo (LLM Local)
+    # PASSO 3: Geração de Resumo IA (Com Timer e Tokens)
     # ==========================================
     if generate_summary:
         logger.info("Iniciando Geração de Resumo com IA Local...")
+        
+        start_time_llm = time.time() # Inicia cronômetro da IA
+
         try:
             reader = PdfReader(pdf_path)
             full_text = ""
@@ -143,23 +146,41 @@ def main() -> None:
             if not full_text.strip():
                 logger.warning("PDF sem texto detectável para resumo.")
             else:
-                final_summary = generate_summary(full_text)
+                # Chama a IA e recebe o dicionário com texto + métricas
+                result_ia = generate_summary(full_text)
                 
+                # Para cronômetro
+                elapsed_llm = time.time() - start_time_llm
+                
+                # Extrai os dados
+                final_summary_text = result_ia.get("text", "")
+                usage = result_ia.get("usage", {})
+                
+                # LOGS PROFISSIONAIS DE PERFORMANCE
+                logger.info(f"Resumo gerado com sucesso em {elapsed_llm:.2f} segundos.")
+                if usage:
+                    logger.info(f"Métricas LLM: Entrada={usage.get('input_tokens')} tokens | "
+                                f"Saída={usage.get('output_tokens')} tokens | "
+                                f"Total={usage.get('total_tokens')} tokens")
+
                 print("\n")
                 print_box("RESUMO INTELIGENTE (IA)")
-                print(final_summary)
+                print(final_summary_text)
+                print(f"\n[Performance: {elapsed_llm:.2f}s | Tokens: {usage.get('total_tokens', '?')}]")
                 print("=" * 60 + "\n")
         
         except Exception as e:
             logger.error(f"Falha na geração do resumo: {e}")
-            final_summary = f"Erro ao gerar resumo: {e}"
+            final_summary_text = f"Erro ao gerar resumo: {e}"
 
     # ==========================================
-    # PASSO EXTRA: Relatório Unificado
+    # Relatório Unificado
     # ==========================================
     logger.info("Gerando Relatório Final Unificado...")
     project_root = os.path.dirname(current_dir)
-    report_file = save_markdown_report(final_pdf_info, final_summary, project_root)
+    
+    # Passamos apenas o texto do resumo para o relatório
+    report_file = save_markdown_report(final_pdf_info, final_summary_text, project_root)
     
     if report_file:
         logger.info(f"Relatório Markdown salvo em: {report_file}")

@@ -75,7 +75,7 @@ def extract_pdf_info(pdf_path):
             'apenas', 'somente', 'só', 'tão',
             'vez', 'vezes', 'geral', 'caso', 'tipo', 'forma', 'exemplo',
             'sobre', 'entre', 'através', 'durante', 'após', 'antes', 'depois',
-            'agora', 'ainda', 'já', 'mais', 'menos', 'bem', 'mal'
+            'agora', 'ainda', 'já', 'mais', 'menos', 'bem', 'mal' , 'não', 'sim'
         }
 
         clean_vocab_list = []
