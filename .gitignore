@@ -1,1 +1,21 @@
+# Ambientes Virtuais
 venv/
+env/
+.env
+
+# Arquivos gerados pelo Python
+__pycache__/
+*.py[cod]
+
+# Arquivos gerados pelo Projeto ADA (Lixo de execução)
+*.log
+execucao.log
+imagens/
+Relatorio_*.md
+resumo_*.txt
+
+# Configurações do VS Code
+.vscode/
+
+# Modelos de IA 
+*.safetensors
