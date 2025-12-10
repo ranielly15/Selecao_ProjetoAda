@@ -1,100 +1,141 @@
-# Projeto ADA: Assistente Digital de Análise de PDF
+#  Projeto ADA: Assistente Digital de Análise de PDF
 
-Este projeto é uma ferramenta de linha de comando (CLI) desenvolvida para o processo seletivo da bolsa Trainee LLM do Projeto ADA. O objetivo é processar arquivos PDF, extrair metadados estatísticos, imagens e gerar resumos inteligentes utilizando Modelos de Linguagem (LLM) rodando localmente.
+![Python](https://img.shields.io/badge/Python-3.9%2B-blue)
+![Status](https://img.shields.io/badge/Status-Finalizado-green)
+![IA](https://img.shields.io/badge/AI-Local-orange)
 
-##  Funcionalidades Implementadas (obrigatórias)
+Este projeto é uma ferramenta de linha de comando (CLI) desenvolvida como parte do processo seletivo para a bolsa **Trainee LLM do Projeto ADA**.
 
-O projeto atende a todos os requisitos obrigatórios e inclui diversas funcionalidades extras:
-
-### 1. Análise Estatística (Sem IA)
-- **Contagem de Palavras:** Análise bruta e limpa (removendo *stopwords*).
-- **Vocabulário:** Cálculo de palavras únicas com normalização (lematização básica).
-- **Top 10 Termos:** Identificação das palavras mais frequentes no texto.
-- **Metadados:** Tamanho do arquivo, número de páginas e bytes.
-
-### 2. Manipulação de Arquivos
-- **Extração de Imagens:** Detecta e salva automaticamente todas as imagens do PDF em pastas organizadas.
-- **Logs de Execução:** Registro detalhado de operações e erros em arquivo (`execucao.log`) e console.
-- **Relatório Unificado:** Geração automática de um relatório final em Markdown (`.md`) contendo todas as estatísticas e o resumo gerado.
-
-### 3. Inteligência Artificial (LLM Local)
-- **Resumo Automático:** Utiliza o modelo **Qwen2.5-0.5B-Instruct** (via Hugging Face) para ler e resumir o conteúdo do PDF.
-- **Métricas de Performance:** Monitoramento de tempo de execução e contagem de tokens (entrada/saída) para análise de custo computacional.
-- **Execução Otimizada:** Carregamento inteligente do modelo para evitar estouro de memória.
-
-
-## Diferenciais e Funcionalidades Opcionais
-
-Além dos requisitos mandatórios, o projeto implementa uma série de funcionalidades avançadas listadas como diferenciais no escopo do desafio:
-
-* **Processamento e Normalização Textual:** Implementação de algoritmo próprio de normalização (`extractor.py`) que realiza a lematização baseada em regras (conversão para singular) e limpeza contextual de *stopwords*, garantindo estatísticas de vocabulário mais precisas.
-* **Sistema de Logging e Rastreabilidade:** Integração de um módulo de *logging* (`logger.py`) que opera em camada dupla: persistência de histórico em arquivo (`execucao.log`) para auditoria e feedback visual formatado no console (`stdout`).
-* **Relatório Unificado (Data Aggregation):** Geração automática de um relatório final estruturado em Markdown (`report.py`), consolidando métricas quantitativas, tabelas de frequência de termos e o resumo gerado pela LLM em um único documento de saída.
-* **Robustez e Tratamento de Exceções:** Implementação de blocos `try/except` granulares em todo o pipeline de execução, assegurando que falhas isoladas (como erro na decodificação de uma imagem específica) não interrompam o fluxo principal da aplicação.
-* **Arquitetura Modular:** Organização do código seguindo estritamente a separação de responsabilidades (SoC), com módulos segregados para lógica de extração (`pdf/`), integração com IA (`llm/`) e interface de usuário (`cli/`).
+O objetivo é processar arquivos PDF, extrair metadados estatísticos, imagens e gerar resumos inteligentes utilizando **Modelos de Linguagem (LLM)** rodando 100% localmente, sem dependência de APIs externas.
 
 ---
 
-##  Tecnologias Utilizadas
+##  Sumário
+
+1. [Sobre o Projeto](#-sobre-o-projeto)
+2. [Funcionalidades Principais (Obrigatórias)](#-funcionalidades-principais-obrigatórias)
+3. [ Funcionalidades Opcionais Implementadas](#-funcionalidades-opcionais-implementadas)
+4. [Tecnologias Utilizadas](#-tecnologias-utilizadas)
+5. [Como Rodar o Projeto](#-como-rodar-o-projeto)
+6. [Estrutura de Pastas](#-estrutura-do-projeto)
+7. [Destaques para Avaliação](#-destaques-para-avaliação)
+
+---
+
+## Funcionalidades Principais (Obrigatórias)
+
+O projeto atende integralmente aos requisitos mandatórios do desafio:
+
+*  **Análise de PDF:** Extração de contagem de palavras, tamanho do arquivo, número de páginas e lista das 10 palavras mais comuns.
+* **Extração de Imagens:** Identificação e salvamento automático de todas as imagens contidas no documento em diretórios organizados.
+* **Integração com LLM:** Carregamento de modelo Hugging Face local (**Qwen2.5-0.5B-Instruct**) para geração de resumos contextuais do documento.
+
+---
+
+##  Funcionalidades Opcionais Implementadas
+
+Além do escopo básico, foram implementadas as seguintes funcionalidades listadas como diferenciais no edital:
+
+### 1. Relatório Final Unificado
+Geração automática de um arquivo **Markdown (`.md`)** ao final da execução. Este relatório consolida:
+* As estatísticas extraídas.
+* A tabela de frequência de palavras.
+* O resumo gerado pela Inteligência Artificial.
+
+### 2. Sistema de Logs (Rastreabilidade)
+Implementação de um **Logger (`logger.py`)** robusto que opera em dois níveis:
+* **Arquivo (`execucao.log`):** Grava o histórico completo de operações para auditoria.
+* **Console:** Exibe feedback visual formatado e limpo para o usuário durante o processamento.
+
+### 3. Limpeza e Normalização de Texto
+Desenvolvimento de um algoritmo próprio em `extractor.py` para tratamento avançado de texto:
+* **Remoção de Stopwords:** Filtragem contextual de artigos e preposições.
+* **Lematização Manual:** Regras de singularização para agrupar termos (ex: "sistemas" conta como "sistema"), garantindo métricas de vocabulário mais precisas.
+
+### 4. Tratamento de Exceções e Robustez
+O código é protegido por blocos `try/except` em pontos críticos (leitura de arquivo, download do modelo, salvamento de imagem), garantindo que falhas parciais não interrompam o fluxo principal da aplicação.
+
+---
+
+## Tecnologias Utilizadas
 
 - **Linguagem:** Python 3.9+
-- **PDF:** `pypdf` (Leitura e extração)
-- **IA:** `transformers`, `torch` (Hugging Face)
-- **CLI:** `argparse` (Interface de linha de comando)
-- **Logs:** `logging` (Rastreabilidade)
+- **Bibliotecas Principais:**
+  - `pypdf`: Parsing e leitura de arquivos binários PDF.
+  - `transformers` & `torch`: Pipeline de inferência para IA Generativa.
+  - `argparse`: Construção da interface de linha de comando (CLI).
+  - `logging`: Sistema de monitoramento.
 
 ---
 
-##  Como Rodar o Projeto
+## Como Rodar o Projeto
 
 ### Pré-requisitos
-Certifique-se de ter o Python instalado. Recomenda-se criar um ambiente virtual:
+Como este projeto executa uma Rede Neural localmente, recomenda-se:
+- **RAM:** Mínimo de 8GB.
+- **Espaço em Disco:** Aprox. 2GB livres (para o modelo).
 
+### Instalação
+
+1. Clone o repositório e acesse a pasta:
+```bash
+git clone https://github.com/ranielly15/Selecao_ProjetoAda.git
+cd <NOME_DA_PASTA>
+ ```
+Crie e ative um ambiente virtual (Recomendado):
+
+
+
+### Windows
 ```bash
 python -m venv venv
-# Windows:
 venv\Scripts\activate
-# Linux/Mac:
+```
+### Linux/Mac
+```
 source venv/bin/activate
-
+```
 Instale as dependências:
-pip install torch transformers pypdf accelerate
-
+```
+pip install -r requirements.txt
+(Dependências: torch, transformers, pypdf, accelerate)
+```
 Executando a Ferramenta
-Para analisar um PDF, execute o arquivo principal apontando para o seu documento:
+Para analisar um PDF, execute o comando abaixo:
 
-python src/main.py --input "caminho/do/seu_arquivo.pdf"
+Comando Básico:
+```
+python src/main.py --input "arquivos_teste/documento.pdf"
+```
+Comando Personalizado (Salvando imagens em outra pasta):
 
-Opcionalmente, defina onde salvar as imagens extraídas:
+```
 python src/main.py --input "documento.pdf" --image_dir "./minhas_imagens"
 ```
+---
+## Estrutura do Projeto
+A organização segue o princípio de Separação de Responsabilidades (SoC):
 
-### Estrutura do Projeto
-A organização segue padrões de modularização para separar responsabilidades:
-
-
-```Plaintext
+```
 
 ├── src/
-│   ├── cli/           # Tratamento de argumentos (argparse)
-│   ├── pdf/           # Lógica de extração de texto e imagens
-│   ├── llm/           # Integração com modelo de IA 
-│   ├── utils/         # Logs e geração de relatórios
-│   └── main.py        # Orquestrador principal
-├── imagens/           # Destino automático das imagens extraídas
-├── execucao.log       # Histórico de operações
+│   ├── cli/           # Interface com o usuário (Argument Parsing)
+│   ├── pdf/           # Camada de extração de dados e imagens
+│   ├── llm/           # Camada de IA (Model Loading & Inference)
+│   ├── utils/         # Ferramentas (Logger, Report Builder)
+│   └── main.py        # Entrypoint (Unidade de Controle)
+├── arquivos_teste/    # PDFs para validação
+├── requirements.txt   # Dependências do projeto
+├── execucao.log       # Log de auditoria
 └── README.md          # Documentação
 ```
 
+## Destaques para Avaliação
 
-## Pontos de Destaque para Avaliação
-Gostaria de destacar os seguintes pontos na implementação:
+**Arquitetura e Modularização:** O código não é um script único. Ele foi estruturado como uma aplicação modular, separando a lógica de I/O, processamento de dados e IA em pacotes distintos (src.pdf, src.llm, src.cli).
 
-- **Qualidade de Código e Tipagem:** O código prioriza clareza, com nomes de variáveis descritivos e uso de Type Hints (opcional do edital) em módulos chave.
+**Algoritmos e Lógica ("Pythonico"):** Implementação de algoritmo próprio em extractor.py para normalização de palavras (singularização) sem depender de bibliotecas pesadas como NLTK, demonstrando capacidade de resolver problemas com lógica pura.
 
-- **Monitoramento de Recursos:** Implementação de cronômetros para medir o tempo de cada etapa (extração vs IA) e contagem de tokens, demonstrando preocupação com performance.
+**Tratamento de Erros e Logs (Robustez):** Uso extensivo de blocos try/except para garantir que o programa não quebre (crash) se encontrar uma imagem corrompida ou falha no modelo, além de sistema de Logs (logger.py) para auditoria.
 
-- **Algoritmo de Normalização Próprio:** Criação de uma lógica manual de singularização de palavras em extractor.py para evitar dependências externas pesadas apenas para limpeza de texto.
-
-- **Robustez:** Tratamento de erros (try/except) em todas as etapas críticas para garantir que uma falha na extração de imagem não pare a geração do resumo.
-
+**Performance e Métricas:** Implementação de benchmarking (medição de tempo) para cada etapa do processo e contagem de tokens, mostrando preocupação com a eficiência do código.
