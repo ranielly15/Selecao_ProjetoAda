@@ -2,7 +2,7 @@
 
 Este projeto é uma ferramenta de linha de comando (CLI) desenvolvida para o processo seletivo da bolsa Trainee LLM do Projeto ADA. O objetivo é processar arquivos PDF, extrair metadados estatísticos, imagens e gerar resumos inteligentes utilizando Modelos de Linguagem (LLM) rodando localmente.
 
-##  Funcionalidades Implementadas
+##  Funcionalidades Implementadas (obrigatórias)
 
 O projeto atende a todos os requisitos obrigatórios e inclui diversas funcionalidades extras:
 
@@ -21,6 +21,17 @@ O projeto atende a todos os requisitos obrigatórios e inclui diversas funcional
 - **Resumo Automático:** Utiliza o modelo **Qwen2.5-0.5B-Instruct** (via Hugging Face) para ler e resumir o conteúdo do PDF.
 - **Métricas de Performance:** Monitoramento de tempo de execução e contagem de tokens (entrada/saída) para análise de custo computacional.
 - **Execução Otimizada:** Carregamento inteligente do modelo para evitar estouro de memória.
+
+
+## Diferenciais e Funcionalidades Opcionais
+
+Além dos requisitos mandatórios, o projeto implementa uma série de funcionalidades avançadas listadas como diferenciais no escopo do desafio:
+
+* **Processamento e Normalização Textual:** Implementação de algoritmo próprio de normalização (`extractor.py`) que realiza a lematização baseada em regras (conversão para singular) e limpeza contextual de *stopwords*, garantindo estatísticas de vocabulário mais precisas.
+* **Sistema de Logging e Rastreabilidade:** Integração de um módulo de *logging* (`logger.py`) que opera em camada dupla: persistência de histórico em arquivo (`execucao.log`) para auditoria e feedback visual formatado no console (`stdout`).
+* **Relatório Unificado (Data Aggregation):** Geração automática de um relatório final estruturado em Markdown (`report.py`), consolidando métricas quantitativas, tabelas de frequência de termos e o resumo gerado pela LLM em um único documento de saída.
+* **Robustez e Tratamento de Exceções:** Implementação de blocos `try/except` granulares em todo o pipeline de execução, assegurando que falhas isoladas (como erro na decodificação de uma imagem específica) não interrompam o fluxo principal da aplicação.
+* **Arquitetura Modular:** Organização do código seguindo estritamente a separação de responsabilidades (SoC), com módulos segregados para lógica de extração (`pdf/`), integração com IA (`llm/`) e interface de usuário (`cli/`).
 
 ---
 
@@ -86,3 +97,4 @@ Gostaria de destacar os seguintes pontos na implementação:
 - **Algoritmo de Normalização Próprio:** Criação de uma lógica manual de singularização de palavras em extractor.py para evitar dependências externas pesadas apenas para limpeza de texto.
 
 - **Robustez:** Tratamento de erros (try/except) em todas as etapas críticas para garantir que uma falha na extração de imagem não pare a geração do resumo.
+
