@@ -74,6 +74,7 @@ O código é protegido por blocos `try/except` em pontos críticos (leitura de a
 Como este projeto executa uma Rede Neural localmente, recomenda-se:
 - **RAM:** Mínimo de 8GB.
 - **Espaço em Disco:** Aprox. 2GB livres (para o modelo).
+-  **Python 3.9+ instalado** 
 
 ### Instalação
 
@@ -98,19 +99,19 @@ source venv/bin/activate
 Instale as dependências:
 ```
 pip install -r requirements.txt
-(Dependências: torch, transformers, pypdf, accelerate)
+#(Dependências: torch, transformers, pypdf, accelerate)
 ```
 Executando a Ferramenta
 Para analisar um PDF, execute o comando abaixo:
 
 Comando Básico:
 ```
-python src/main.py --input "arquivos_teste/documento.pdf"
+python src/main.py --input python src/main.py --input "caminho_para_seu_arquivo.pdf"
 ```
 Comando Personalizado (Salvando imagens em outra pasta):
 
 ```
-python src/main.py --input "documento.pdf" --image_dir "./minhas_imagens"
+python src/main.py --input python src/main.py --input "caminho_para_seu_arquivo.pdf" --image_dir "caminho_para_as_imagens.pdf"
 ```
 ---
 ## Estrutura do Projeto
