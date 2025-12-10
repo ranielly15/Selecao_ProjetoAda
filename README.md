@@ -2,7 +2,7 @@
 
 Este projeto é uma ferramenta de linha de comando (CLI) desenvolvida para o processo seletivo da bolsa Trainee LLM do Projeto ADA. O objetivo é processar arquivos PDF, extrair metadados estatísticos, imagens e gerar resumos inteligentes utilizando Modelos de Linguagem (LLM) rodando localmente.
 
-## 📋 Funcionalidades Implementadas
+##  Funcionalidades Implementadas
 
 O projeto atende a todos os requisitos obrigatórios e inclui diversas funcionalidades extras:
 
@@ -24,7 +24,7 @@ O projeto atende a todos os requisitos obrigatórios e inclui diversas funcional
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
+##  Tecnologias Utilizadas
 
 - **Linguagem:** Python 3.9+
 - **PDF:** `pypdf` (Leitura e extração)
@@ -34,7 +34,7 @@ O projeto atende a todos os requisitos obrigatórios e inclui diversas funcional
 
 ---
 
-## 🚀 Como Rodar o Projeto
+##  Como Rodar o Projeto
 
 ### Pré-requisitos
 Certifique-se de ter o Python instalado. Recomenda-se criar um ambiente virtual:
